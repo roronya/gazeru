@@ -9,7 +9,13 @@ class SoundExtractor:
         file_handler.close()
         return self._extract()
 
+    def get_sound_type(self):
+        return self._get_sound_type()
+
     def _extract(self):
+        raise NotImplementedError()
+
+    def _get_sound_type(self):
         raise NotImplementedError()
 
 class Mp3ExtractorFromFlv(SoundExtractor):
@@ -23,6 +29,9 @@ class Mp3ExtractorFromFlv(SoundExtractor):
         os.remove(SOUND_FILE)
         return sound
 
+    def _get_sound_type(self):
+        return 'mp3'
+
 class Mp3ExtractorFromSwf(SoundExtractor):
     def _extract(self):
         SOUND_FILE = '{0}.mp3'.format(self.TMP_FILE)
@@ -34,6 +43,9 @@ class Mp3ExtractorFromSwf(SoundExtractor):
         os.remove(SOUND_FILE)
         return sound
 
+    def _get_sound_type(self):
+        return 'mp3'
+
 class M4aExtractorFromMp4(SoundExtractor):
     def _extract(self):
         SOUND_FILE = '{0}.mp4'.format(self.TMP_FILE)
@@ -44,6 +56,9 @@ class M4aExtractorFromMp4(SoundExtractor):
         os.remove(self.TMP_FILE)
         os.remove(SOUND_FILE)
         return sound
+
+    def _get_sound_type(self):
+        return 'mp4'
 
 class SoundExtractorFactory:
     def build(self, video, video_type):
