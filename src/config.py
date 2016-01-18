@@ -30,6 +30,10 @@ class Config():
         self.config['mylist'].append(mylist)
         self._save()
 
+    def set_directory(self, directory):
+        self.config['directory'] = directory
+        self._save()
+
     def _save(self):
          with open(self.configfile, 'w') as configfile:
             configfile.write(json.dumps(self.config))
