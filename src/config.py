@@ -34,6 +34,9 @@ class Config():
         self.config['directory'] = directory
         self._save()
 
+    def get_directory(self):
+        return self.config['directory']
+
     def _save(self):
          with open(self.configfile, 'w') as configfile:
             configfile.write(json.dumps(self.config))
