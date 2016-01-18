@@ -48,7 +48,7 @@ class Gazeru:
                 sound,sound_type = self.extract_sound(video, video_info)
                 sound_file_path = '{0}/{1}'.format(self.config.get_directory(), all_mylist_info[mylist_id]['creator'])
                 os.makedirs(sound_file_path, exist_ok=True)
-                sound_file = '{0}/{1}.{2}'.format(sound_file_path, video_info['title'], sound_type)
+                sound_file = '{0}/{1}.{2}'.format(sound_file_path, self.escape_slash(video_info['title']), sound_type)
                 with open(sound_file, 'wb') as file:
                     file.write(sound)
                 if mylist_id not in done.keys():
@@ -56,6 +56,9 @@ class Gazeru:
                 done[mylist_id].append(video_id)
                 with open(self.dot_gazeru, 'w') as file:
                     file.write(json.dumps(done))
+
+    def escape_slash(self, title):
+        return title.replace("/", "／")
 
     def extract_sound(self, video, video_info):
         sound_extractor = self.sound_extractor_factory.build(video, video_info['movie_type'])
