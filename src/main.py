@@ -63,7 +63,7 @@ if __name__ == '__main__':
         dot_gazeru = '{0}/.gazeru'.format(config.get_directory())
         with open(dot_gazeru, 'r') as file:
             done = json.loads(file.read())
-        not_yet = {mylist_id: [video_id for video_id in video_id_list if video_id not in done[mylist_id]] for mylist_id,video_id_list in all.items()}
+        not_yet = {mylist_id: [video_id for video_id in video_id_list if mylist_id not in done.keys() or video_id not in done[mylist_id]] for mylist_id,video_id_list in all.items()}
         for mylist_id,video_id_list in not_yet.items():
             for video_id in video_id_list:
                 video_info = niconico.get_thumb_info(video_id)
@@ -75,6 +75,8 @@ if __name__ == '__main__':
                 sound_file = '{0}/{1}.{2}'.format(sound_file_path, video_info['title'], sound_extractor.get_sound_type())
                 with open(sound_file, 'wb') as file:
                     file.write(sound)
+                if mylist_id not in done.keys():
+                    done[mylist_id] = []
                 done[mylist_id].append(video_id)
                 with open(dot_gazeru, 'w') as file:
                     file.write(json.dumps(done))
