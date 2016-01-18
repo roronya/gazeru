@@ -8,6 +8,7 @@ if __name__ == '__main__':
     argparser = argparse.ArgumentParser(description='gazeru is niconico downloader')
     argparser.add_argument('-l', '--list',help='display registered mylist', action='store_true')
     argparser.add_argument('-a', '--add', help='add mylist')
+    argparser.add_argument('-u', '--user', nargs=2, help='set user and password')
     args = argparser.parse_args()
 
     if args.list:
@@ -26,5 +27,11 @@ if __name__ == '__main__':
             niconico = NicovideoAPI(config.get_user(), config.get_password())
             mylist_info = niconico.get_mylist_info(mylist_id)
             config.add_mylist({'id': mylist_info['id'], 'creator': mylist_info['creator'], 'title': mylist_info['title']})
+    elif args.user:
+        user = args.user[0]
+        password = args.user[1]
+        config = Config()
+        config.set_user(user)
+        config.set_password(password)
     else:
         config = Config()
