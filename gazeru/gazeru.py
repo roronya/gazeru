@@ -49,40 +49,76 @@ class Gazeru:
         self.config.add_mylist({'id': mylist_info['id'], 'creator': mylist_info['creator'], 'title': mylist_info['title']})
         self.logger.info('add mylist {0}'.format(mylist_id))
 
+    def get_uploaded(self):
+        uploaded = {mylist['id']: self.niconico.get_mylist_info(mylist['id'])['video_list'] for mylist in self.config.get_mylists()}
+        return uploaded
+
+    def get_logged(self):
+        with open(self.dot_gazeru, 'r') as file:
+            downloaded = json.loads(file.read())
+        return downloaded
+
+    def get_existed_creator_mylists(self, creator):
+        return os.listdir('{0}/{1}'.format(self.config.get_directory(), creator))
+
+    def get_existed_creator_mylist_songs(self, creator, mylist):
+        return os.listdir('{0}/{1}/{2}'.format(self.config.get_directory(), creator, mylist))
+
+    def get_existed(self):
+        """
+        {'164': {'マイリス': [], 'mylis2': []}, 'sasakureUK': {'マイリス': []}}
+        """
+        creators = os.listdir(self.config.get_directory())
+        creators.remove('.gazeru')
+        existed = {creator:
+                   {mylist:
+                    [self.get_existed_creator_mylist_songs(creator, mylist)]
+                    for mylist in self.get_existed_creator_mylists(creator)}
+                   for creator in creators}
+        return existed
+
+    def get_downloaded(self):
+        existed = self.get_existed()
+        # {'164': {'マイリス': [], 'mylis2': []}, 'sasakureUK': {'マイリス': []}}
+        logged = self.get_logged()
+        # {'sasakureUK': {'mylist': {'id': 12313, 'video_list': {'hogehoge': 'sm12312'}}}}
+        # {mylist_id: [video_id, video_id], mylist_id2: []}
+        downloaded = {}
+        for creator, mylists in existed.items():
+            for mylist_title, songs in mylists.items():
+                if creator in logged and mylist_title in logged[creator]:
+                    downloaded.update({logged[creator][mylist_title]['id']: [video_id for video_title, video_id in logged[creator][mylist_title]['video_list'].items() if video_title in songs]})
+        return downloaded
+
     def pull(self):
         if not os.path.exists(self.dot_gazeru):
             self.create_dot_gazeru()
             self.logger.info('create {0}'.format(self.dot_gazeru))
-        mylists = self.config.get_mylists()
-        all_mylist_info = {mylist['id']: self.niconico.get_mylist_info(mylist['id']) for mylist in mylists}
-        all = {mylist_info['id']: mylist_info['video_list'] for mylist_id,mylist_info in all_mylist_info.items()}
-        with open(self.dot_gazeru, 'r') as file:
-            done = json.loads(file.read())
-
-        not_yet_downloads = {mylist_id:
-                             [video_id for video_id in video_id_list
-                              if mylist_id not in done.keys() or video_id not in [d['video_id'] for d in done[mylist_id]]]
-                             for mylist_id,video_id_list in all.items()}
-        self.logger.info('not_yet_downloads is {0}'.format(not_yet_downloads))
-        for mylist_id,video_id_list in not_yet_downloads.items():
+        mylist_infos = {mylist['id']: self.niconico.get_mylist_info(mylist['id']) for mylist in self.config.get_mylists()}
+        downloaded = self.get_downloaded()
+        uploaded = {mylist_info['id']: mylist_info['video_list'] for mylist_id, mylist_info in mylist_infos.items()}
+        downloading = {mylist_id:
+                       [video_id
+                        for video_id in video_list
+                        if mylist_id not in downloaded.keys()
+                        or video_id not in downloaded[mylist_id]]
+                       for mylist_id, video_list in uploaded.items()}
+        self.logger.info('downloading {0}'.format(downloading))
+        for mylist_id,video_id_list in downloading.items():
             for video_id in video_id_list:
                 try:
-                    video_info, video = self.download_video(video_id)
+                    video, video_info = self.download_video(video_id)
                     sound,sound_type = self.extract_sound(video, video_info)
-                    sound_file_path = '{0}/{1}'.format(self.config.get_directory(), all_mylist_info[mylist_id]['creator'])
+                    sound_file_path = '{0}/{1}/{2}'.format(self.config.get_directory(), mylist_infos[mylist_id]['creator'], mylist_infos[mylist_id]['title'])
                     os.makedirs(sound_file_path, exist_ok=True)
                     sound_file = '{0}.{1}'.format(self.escape_slash(video_info['title']), sound_type)
-                    full_sound_file = '{0}/{1}'.format(sound_file_path, sound_file)
-                    self.logger.info('start writing {0} to {1}'.format(video_id, full_sound_file))
-                    with open(full_sound_file, 'wb') as file:
+                    full_sound_file_path = '{0}/{1}'.format(sound_file_path, sound_file)
+                    self.logger.info('start writing {0} to {1}'.format(video_id, full_sound_file_path))
+                    with open(full_sound_file_path, 'wb') as file:
                         file.write(sound)
-                    self.logger.info('finished writing {0} to {1}'.format(video_id, full_sound_file))
+                    self.logger.info('finished writing {0} to {1}'.format(video_id, full_sound_file_path))
                     self.logger.info('start updating .gazeru')
-                    if mylist_id not in done.keys():
-                        done[mylist_id] = []
-                    done[mylist_id].append({'video_id': video_id, 'title': sound_file})
-                    with open(self.dot_gazeru, 'w') as file:
-                        file.write(json.dumps(done))
+                    self.update_dot_gazeru(mylist_infos, video_info)
                     self.logger.info('finished updating .gazeru')
                 except Exception as e:
                     self.logger.critical(e.value)
@@ -100,11 +136,30 @@ class Gazeru:
 
     def download_video(self, video_id):
         self.logger.info('start downloading {0}'.format(video_id))
-        result = (self.niconico.get_thumb_info(video_id), self.niconico.get_flv(video_id))
+        result = (self.niconico.get_flv(video_id), self.niconico.get_thumb_info(video_id))
         self.logger.info('finished downloading {0}'.format(video_id))
         return result
 
     def create_dot_gazeru(self):
+        """
+        {'sasakureUK': {'mylist': {'id': 12313, 'video_list': {'hogehoge': 'sm12312'}}}}
+        """
+        dot_gazeru = {mylist['creator']:
+                      {mylist['title']:
+                       {'id': mylist['id'], 'video_list': {}}
+                      }
+                      for mylist in self.config.get_mylists()}
         with open(self.dot_gazeru, 'w') as file:
-            file.write(json.dumps({mylist['id']:[] for mylist in self.config.get_mylists()}))
+            file.write(json.dumps(dot_gazeru))
+        return self
+
+    def update_dot_gazeru(self, mylist_infos, video_info):
+        dot_gazeru = {mylist['creator']:
+                      {mylist['title']:
+                      {'id': mylist['id'],
+                       'video_list': {video_info['title']: video_id for video_id in mylist_infos[mylist['id']]['video_list']}}
+                      }
+                      for mylist in self.config.get_mylists()}
+        with open(self.dot_gazeru, 'w') as file:
+            file.write(json.dumps(dot_gazeru))
         return self
