@@ -42,15 +42,22 @@ class Gazeru:
         return self
 
     def add_mylist(self, mylist_id):
-        registerd_mylist_id_list = [mylist['id'] for mylist in self.config.get_mylists()]
-        if mylist_id in registerd_mylist_id_list:
+        registered_mylist_id_list = [mylist['id'] for mylist in self.config.get_mylists().values()]
+        if mylist_id in registered_mylist_id_list:
             raise AlreadyRegisteredMylistError()
         mylist_info = self.niconico.get_mylist_info(mylist_id)
-        self.config.add_mylist({'id': mylist_info['id'], 'creator': mylist_info['creator'], 'title': mylist_info['title']})
+        self.config.add_mylist({mylist_info['id']: {'id': mylist_info['id'], 'creator': mylist_info['creator'], 'title': mylist_info['title']}})
         self.logger.info('add mylist {0}'.format(mylist_id))
 
+    def remove_mylist(self, mylist_id):
+        registered_mylist_id_list = [mylist['id'] for mylist in self.config.get_mylists().values()]
+        if mylist_id not in registered_mylist_id_list:
+            raise NotRegisteredMylistError()
+        self.config.remove_mylist(mylist_id)
+        self.logger.info('remove mylist {0}'.format(mylist_id))
+
     def get_uploaded(self):
-        uploaded = {mylist['id']: self.niconico.get_mylist_info(mylist['id'])['video_list'] for mylist in self.config.get_mylists()}
+        uploaded = {mylist['id']: self.niconico.get_mylist_info(mylist['id'])['video_list'] for mylist in self.config.get_mylists().values()}
         return uploaded
 
     def get_logged(self):
@@ -94,7 +101,7 @@ class Gazeru:
         if not os.path.exists(self.dot_gazeru):
             self.create_dot_gazeru()
             self.logger.info('create {0}'.format(self.dot_gazeru))
-        mylist_infos = {mylist['id']: self.niconico.get_mylist_info(mylist['id']) for mylist in self.config.get_mylists()}
+        mylist_infos = {mylist['id']: self.niconico.get_mylist_info(mylist['id']) for mylist in self.config.get_mylists().values()}
         downloaded = self.get_downloaded()
         uploaded = {mylist_info['id']: mylist_info['video_list'] for mylist_id, mylist_info in mylist_infos.items()}
         downloading = {mylist_id:
@@ -148,7 +155,7 @@ class Gazeru:
                       {mylist['title']:
                        {'id': mylist['id'], 'video_list': {}}
                       }
-                      for mylist in self.config.get_mylists()}
+                      for mylist in self.config.get_mylists().values()}
         with open(self.dot_gazeru, 'w') as file:
             file.write(json.dumps(dot_gazeru))
         return self
@@ -159,7 +166,7 @@ class Gazeru:
                       {'id': mylist['id'],
                        'video_list': {video_info['title']: video_id for video_id in mylist_infos[mylist['id']]['video_list']}}
                       }
-                      for mylist in self.config.get_mylists()}
+                      for mylist in self.config.get_mylists().values()}
         with open(self.dot_gazeru, 'w') as file:
             file.write(json.dumps(dot_gazeru))
         return self

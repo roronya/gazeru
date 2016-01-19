@@ -1,10 +1,13 @@
 import os
 import json
+from .exception import *
 
 class Config():
     def __init__(self):
         HOME = os.environ['HOME']
         self.configfile = '{0}/.gazeru/gazeru.conf'.format(HOME)
+        if not os.path.exists(self.configfile):
+            raise NotInitError()
         with open(self.configfile, 'r') as configfile:
             config = configfile.read()
         self.config = json.loads(config)
@@ -27,7 +30,12 @@ class Config():
         return self.config['account']['password']
 
     def add_mylist(self, mylist):
-        self.config['mylist'].append(mylist)
+        self.config['mylist'].update(mylist)
+        self._save()
+
+    def remove_mylist(self, mylist_id):
+        print(self.config['mylist'])
+        del self.config['mylist'][mylist_id]
         self._save()
 
     def set_directory(self, directory):
