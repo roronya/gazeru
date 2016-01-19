@@ -2,10 +2,10 @@ import os
 import json
 import logging
 from logging import FileHandler, Formatter
-from config import Config
-from nicovideo_api import NicovideoAPI
-from sound_extractor import SoundExtractorFactory
-from exception import *
+from .config import Config
+from .nicovideo_api import NicovideoAPI
+from .sound_extractor import SoundExtractorFactory
+from .exception import *
 
 class Gazeru:
     def __init__(self):
