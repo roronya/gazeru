@@ -84,8 +84,11 @@ if __name__ == '__main__':
     parser_init.add_argument('directory')
     parser_init.set_defaults(func=init_gazeru)
 
-    parser_pull = subparsers.add_parser('pull', help='pull movies')
+    parser_pull = subparsers.add_parser('pull', help='pull songs')
     parser_pull.set_defaults(func=pull)
 
     args = parser.parse_args()
-    args.func(args)
+    if vars(args):
+        args.func(args)
+    else:
+        parser.print_help()
