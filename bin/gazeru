@@ -2,7 +2,7 @@
 import argparse
 import os
 import json
-from gazeru import Gazeru
+from gazeru import *
 
 def display_registed_mylist(args):
     gazeru = Gazeru()
@@ -17,6 +17,8 @@ def add_mylist(args):
         gazeru.add_mylist(mylist_id)
     except AlreadyRegisteredMylistError:
         print('{0} is already registed'.format(mylist_id))
+    except NotFoundMylistError:
+        print('{0} is not found in niconico'.format(mylist_id))
 
 def remove_mylist(args):
     gazeru = Gazeru()

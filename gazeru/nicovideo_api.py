@@ -3,6 +3,9 @@ import urllib.parse
 import re
 from pyquery import PyQuery as pq
 
+class NotFoundError(Exception):
+    pass
+
 class NicovideoAPI:
     def __init__(self, mailaddress, password):
         self.login(mailaddress, password)
@@ -48,14 +51,17 @@ class NicovideoAPI:
         return content
 
     def get_mylist_info(self, mylist_id):
-        mylist_xml = requests.get('http://www.nicovideo.jp/mylist/{0}?rss=2.0&lkang=ja-jp'.format(mylist_id))
-        dom = pq(mylist_xml.content, parser='xml')
-        title = dom('channel > title').text()
-        creator = dom('channel > dc\:creator').text()
-        mylist = {'id': mylist_id,
-                  'title': title,
-                  'creator': creator,
-                  'video_list': [re.search(r'[^/]*$', link.text).group(0) for link in dom('channel item link')]}
+        response = requests.get('http://www.nicovideo.jp/mylist/{0}?rss=2.0&lkang=ja-jp'.format(mylist_id))
+        if response.status_code == 404:
+            raise NotFoundError()
+        else:
+            dom = pq(response.content, parser='xml')
+            title = dom('channel > title').text()
+            creator = dom('channel > dc\:creator').text()
+            mylist = {'id': mylist_id,
+                    'title': title,
+                    'creator': creator,
+                    'video_list': [re.search(r'[^/]*$', link.text).group(0) for link in dom('channel item link')]}
         return mylist
 
     def _get_flv_url(self, video_id):

@@ -3,7 +3,7 @@ import json
 import logging
 from logging import FileHandler, Formatter
 from .config import Config
-from .nicovideo_api import NicovideoAPI
+from .nicovideo_api import *
 from .sound_extractor import SoundExtractorFactory
 from .exception import *
 
@@ -45,7 +45,10 @@ class Gazeru:
         registered_mylist_id_list = [mylist['id'] for mylist in self.config.get_mylists().values()]
         if mylist_id in registered_mylist_id_list:
             raise AlreadyRegisteredMylistError()
-        mylist_info = self.niconico.get_mylist_info(mylist_id)
+        try:
+            mylist_info = self.niconico.get_mylist_info(mylist_id)
+        except NotFoundError:
+            raise NotFoundMylistError()
         self.config.add_mylist({mylist_info['id']: {'id': mylist_info['id'], 'creator': mylist_info['creator'], 'title': mylist_info['title']}})
         self.logger.info('add mylist {0}'.format(mylist_id))
 

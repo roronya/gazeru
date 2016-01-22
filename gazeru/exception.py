@@ -12,3 +12,8 @@ class NotInitError(Exception):
     """
     gazeru init してないときに呼ばれる
     """
+
+class NotFoundMylistError(Exception):
+    """
+    ニコニコ動画に無いマイリストだった場合呼ばれる
+    """
