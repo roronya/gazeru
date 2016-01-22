@@ -58,7 +58,7 @@ class M4aExtractorFromMp4(SoundExtractor):
         return sound
 
     def _get_sound_type(self):
-        return 'mp4'
+        return 'm4a'
 
 class SoundExtractorFactory:
     def build(self, video, video_type):
