@@ -1,16 +1,16 @@
 import os
 import json
 import logging
+import re
 from logging import FileHandler, Formatter
+import nicopy
 from .config import Config
-from .nicovideo_api import *
 from .sound_extractor import SoundExtractorFactory
 from .exception import *
 
 class Gazeru:
     def __init__(self):
         self.config = Config()
-        self.niconico = NicovideoAPI(self.config.get_user(), self.config.get_password())
         self.sound_extractor_factory = SoundExtractorFactory()
         self.dot_gazeru = '{0}/.gazeru'.format(self.config.get_directory())
         self.GAZEL_HOME = '{0}/.gazeru'.format(os.environ['HOME'])
@@ -31,7 +31,8 @@ class Gazeru:
     def set_account(self, user, password):
         self.config.set_user(user)
         self.config.set_password(password)
-        self.niconico.login(self.config.get_user(), self.config.get_password())
+        # login 失敗したら nicopy.FailedLoginError を投げる
+        nicopy.login(self.config.get_user(), self.config.get_password())
         self.logger.info('set user and password')
         return self
 
@@ -46,7 +47,7 @@ class Gazeru:
         if mylist_id in registered_mylist_id_list:
             raise AlreadyRegisteredMylistError()
         try:
-            mylist_info = self.niconico.get_mylist_info(mylist_id)
+            mylist_info = nicopy.get_mylist_info(mylist_id)
         except NotFoundError:
             raise NotFoundMylistError()
         self.config.add_mylist({mylist_info['id']: {'id': mylist_info['id'], 'creator': mylist_info['creator'], 'title': mylist_info['title']}})
@@ -60,7 +61,7 @@ class Gazeru:
         self.logger.info('remove mylist {0}'.format(mylist_id))
 
     def get_uploaded(self):
-        uploaded = {mylist['id']: self.niconico.get_mylist_info(mylist['id'])['video_list'] for mylist in self.config.get_mylists().values()}
+        uploaded = {mylist['id']: nicopy.get_mylist_info(mylist['id'])['items'] for mylist in self.config.get_mylists().values()}
         return uploaded
 
     def get_logged(self):
@@ -104,9 +105,9 @@ class Gazeru:
         if not os.path.exists(self.dot_gazeru):
             self.create_dot_gazeru()
             self.logger.info('create {0}'.format(self.dot_gazeru))
-        mylist_infos = {mylist['id']: self.niconico.get_mylist_info(mylist['id']) for mylist in self.config.get_mylists().values()}
+        mylist_infos = {mylist['id']: nicopy.get_mylist_info(mylist['id']) for mylist in self.config.get_mylists().values()}
         downloaded = self.get_downloaded()
-        uploaded = {mylist_info['id']: mylist_info['video_list'] for mylist_id, mylist_info in mylist_infos.items()}
+        uploaded = {mylist_info['id']: [re.search(r'[^/]*$', item['link']).group(0) for item in mylist_info['items']] for mylist_id, mylist_info in mylist_infos.items()}
         downloading = {mylist_id:
                        [video_id
                         for video_id in video_list
@@ -116,10 +117,10 @@ class Gazeru:
         self.logger.info('downloading {0}'.format(downloading))
         for mylist_id,video_id_list in downloading.items():
             for video_id in video_id_list:
-                try:
+                #try:
+                    sound_file_path = '{0}/{1}/{2}'.format(self.config.get_directory(), mylist_infos[mylist_id]['creator'], mylist_infos[mylist_id]['title'])
                     video, video_info = self.download_video(video_id)
                     sound,sound_type = self.extract_sound(video, video_info)
-                    sound_file_path = '{0}/{1}/{2}'.format(self.config.get_directory(), mylist_infos[mylist_id]['creator'], mylist_infos[mylist_id]['title'])
                     os.makedirs(sound_file_path, exist_ok=True)
                     sound_file = '{0}.{1}'.format(self.escape_slash(video_info['title']), sound_type)
                     full_sound_file_path = '{0}/{1}'.format(sound_file_path, sound_file)
@@ -130,9 +131,9 @@ class Gazeru:
                     self.logger.info('start updating .gazeru')
                     self.update_dot_gazeru(mylist_infos, video_info)
                     self.logger.info('finished updating .gazeru')
-                except Exception as e:
-                    self.logger.critical(e.value)
-                    self.logger.error('{0} is not downloaded'.format(video_id))
+                #except Exception as e:
+                    #self.logger.critical(e)
+                    #self.logger.error('{0} is not downloaded'.format(video_id))
 
     def escape_slash(self, title):
         return title.replace("/", "／")
@@ -146,7 +147,10 @@ class Gazeru:
 
     def download_video(self, video_id):
         self.logger.info('start downloading {0}'.format(video_id))
-        result = (self.niconico.get_flv(video_id), self.niconico.get_thumb_info(video_id))
+        cookie = nicopy.login(self.config.get_user(), self.config.get_password())
+        flv = nicopy.get_flv(video_id, cookie)
+        video_info = nicopy.get_video_info(video_id)
+        result = (flv, video_info)
         self.logger.info('finished downloading {0}'.format(video_id))
         return result
 
@@ -167,7 +171,7 @@ class Gazeru:
         dot_gazeru = {mylist['creator']:
                       {mylist['title']:
                       {'id': mylist['id'],
-                       'video_list': {video_info['title']: video_id for video_id in mylist_infos[mylist['id']]['video_list']}}
+                       'video_list': {video_info['title']: video_id for video_id in mylist_infos[mylist['id']]['items']}}
                       }
                       for mylist in self.config.get_mylists().values()}
         with open(self.dot_gazeru, 'w') as file:

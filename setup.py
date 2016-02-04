@@ -23,6 +23,6 @@ setup(
     ],
     keywords='niconico crawler',
     packages=find_packages(exclude=['tests*']),
-    install_requires=['requests', 'pyquery'],
+    install_requires=['requests', 'pyquery', 'nicopy'],
     scripts=['bin/gazeru']
 )
