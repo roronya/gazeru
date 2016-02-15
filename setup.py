@@ -2,15 +2,17 @@ from setuptools import setup, find_packages
 from os import path
 
 here = path.abspath(path.dirname(__file__))
+subprocess.call('pandoc {0}/README.md -s -o {0}/README.rst'
+                .format(here), shell=True)
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
     name='gazeru',
-    version = '1.1.0',
+    version='1.1.1',
     description='A crawler for niconico',
     long_description=long_description,
-    url = 'http://github.com/roronya/gazeru',
+    url='http://github.com/roronya/gazeru',
     author='roronya',
     author_email='roronya628@gmail.com',
     license='MIT',
