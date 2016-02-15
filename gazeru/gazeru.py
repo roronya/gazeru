@@ -20,7 +20,7 @@ class Gazeru:
 
     def setup_logger(self):
         logging.basicConfig(
-            level=logging.DEBUG, format='%(asctime)s- %(name)s - %(levelname)s - %(message)s')
+            level=logging.ERROR, format='%(asctime)s- %(name)s - %(levelname)s - %(message)s')
         self.logger = logging.getLogger(__name__)
         file_handler = FileHandler(
             '{0}/log/gazeru.log'.format(self.GAZEL_HOME), 'a+')
