@@ -22,11 +22,11 @@ class Gazeru:
         logging.basicConfig(
             level=logging.ERROR, format='%(asctime)s- %(name)s - %(levelname)s - %(message)s')
         self.logger = logging.getLogger(__name__)
-        file_handler = FileHandler(
-            '{0}/log/gazeru.log'.format(self.GAZEL_HOME), 'a+')
+        file_handler = FileHandler('{0}/log/gazeru.log'
+                                   .format(self.GAZEL_HOME), 'a+')
         file_handler.level = logging.INFO
-        file_handler.formatter = Formatter(
-            fmt='%(asctime)s %(message)s', datefmt='%Y/%m/%d %p %I:%M:%S')
+        file_handler.formatter = Formatter(fmt='%(asctime)s %(message)s',
+                                           datefmt='%Y/%m/%d %p %I:%M:%S')
         self.logger.addHandler(file_handler)
         return self
 
@@ -87,8 +87,8 @@ class Gazeru:
         download_directory = self.config.get_directory()
         existed = {creator:
                    {mylist:
-                    os.listdir(
-                        '{0}/{1}/{2}'.format(download_directory, creator, mylist))
+                    os.listdir('{0}/{1}/{2}'
+                               .format(download_directory, creator, mylist))
                     for mylist in os.listdir('{0}/{1}'.format(download_directory, creator))
                     if os.path.isdir('{0}/{1}/{2}'.format(download_directory, creator, mylist))}
                    for creator in os.listdir(download_directory)
@@ -129,6 +129,7 @@ class Gazeru:
         for creator, mylists in downloading.items():
             for mylist_title, video_infos in mylists.items():
                 for video_info in video_infos:
+                    print('downloading {0}'.format(video_info['title']))
                     video, video_type = self.download_video(video_info['id'])
                     sound, sound_type = self.extract_sound(video, video_type)
                     sound_file_directory = '{0}/{1}/{2}'.format(
