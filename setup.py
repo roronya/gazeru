@@ -10,7 +10,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='gazeru',
-    version='1.1.2',
+    version='1.1.3',
     description='A crawler for niconico',
     long_description=long_description,
     url='http://github.com/roronya/gazeru',
