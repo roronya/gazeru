@@ -139,6 +139,7 @@ class Gazeru:
                         sound_file_directory, self.escape(video_info['title']), sound_type)
                     with open(sound_file_path, 'wb') as file:
                         file.write(sound)
+                    print('done!')
         return downloading
 
     def escape(self, string):

@@ -1,8 +1,10 @@
 import subprocess
 import os
 
+
 class SoundExtractor:
     TMP_FILE = '/tmp/gazeru_tmp'
+
     def extract(self, video):
         file_handler = open(self.TMP_FILE, 'wb')
         file_handler.write(video)
@@ -18,10 +20,13 @@ class SoundExtractor:
     def _get_sound_type(self):
         raise NotImplementedError()
 
+
 class Mp3ExtractorFromFlv(SoundExtractor):
+
     def _extract(self):
         SOUND_FILE = '{0}.mp3'.format(self.TMP_FILE)
-        subprocess.call('ffmpeg -i {0} -acodec copy {1}'.format(self.TMP_FILE, SOUND_FILE), shell=True)
+        subprocess.call('ffmpeg -i {0} -acodec copy {1} > /dev/null 2>&1'
+                        .format(self.TMP_FILE, SOUND_FILE), shell=True)
         file_handler = open(SOUND_FILE, 'rb')
         sound = file_handler.read()
         file_handler.close()
@@ -31,11 +36,14 @@ class Mp3ExtractorFromFlv(SoundExtractor):
 
     def _get_sound_type(self):
         return 'mp3'
+
 
 class Mp3ExtractorFromSwf(SoundExtractor):
+
     def _extract(self):
         SOUND_FILE = '{0}.mp3'.format(self.TMP_FILE)
-        subprocess.call('swfextract -m {0} -o {1}'.format(self.TMP_FILE, sound_file), shell=True)
+        subprocess.call('swfextract -m {0} -o {1} > /dev/null 2>&1'
+                        .format(self.TMP_FILE, sound_file), shell=True)
         file_handler = open(SOUND_FILE, 'rb')
         sound = file_handler.read()
         file_handler.close()
@@ -46,10 +54,13 @@ class Mp3ExtractorFromSwf(SoundExtractor):
     def _get_sound_type(self):
         return 'mp3'
 
+
 class M4aExtractorFromMp4(SoundExtractor):
+
     def _extract(self):
         SOUND_FILE = '{0}.mp4'.format(self.TMP_FILE)
-        subprocess.call('ffmpeg -i {0} -vn -acodec copy {1}'.format(self.TMP_FILE, SOUND_FILE), shell=True)
+        subprocess.call('ffmpeg -i {0} -vn -acodec copy {1} > /dev/null 2>&1'
+                        .format(self.TMP_FILE, SOUND_FILE), shell=True)
         file_handler = open(SOUND_FILE, 'rb')
         sound = file_handler.read()
         file_handler.close()
@@ -60,7 +71,9 @@ class M4aExtractorFromMp4(SoundExtractor):
     def _get_sound_type(self):
         return 'm4a'
 
+
 class SoundExtractorFactory:
+
     def build(self, video, video_type):
         if (video_type == 'flv'):
             return Mp3ExtractorFromFlv()
