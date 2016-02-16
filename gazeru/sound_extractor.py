@@ -43,7 +43,7 @@ class Mp3ExtractorFromSwf(SoundExtractor):
     def _extract(self):
         SOUND_FILE = '{0}.mp3'.format(self.TMP_FILE)
         subprocess.call('swfextract -m {0} -o {1} > /dev/null 2>&1'
-                        .format(self.TMP_FILE, sound_file), shell=True)
+                        .format(self.TMP_FILE, SOUND_FILE), shell=True)
         file_handler = open(SOUND_FILE, 'rb')
         sound = file_handler.read()
         file_handler.close()
