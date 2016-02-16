@@ -2,7 +2,9 @@ import os
 import json
 from .exception import *
 
+
 class Config():
+
     def __init__(self):
         HOME = os.environ['HOME']
         self.configfile = '{0}/.gazeru/gazeru.conf'.format(HOME)
@@ -34,7 +36,6 @@ class Config():
         self._save()
 
     def remove_mylist(self, mylist_id):
-        print(self.config['mylist'])
         del self.config['mylist'][mylist_id]
         self._save()
 
@@ -46,5 +47,5 @@ class Config():
         return self.config['directory']
 
     def _save(self):
-         with open(self.configfile, 'w') as configfile:
+        with open(self.configfile, 'w') as configfile:
             configfile.write(json.dumps(self.config))
