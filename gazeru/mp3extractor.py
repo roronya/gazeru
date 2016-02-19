@@ -2,7 +2,7 @@ import subprocess
 import os
 
 
-class SoundExtractor:
+class Mp3Extractor:
     TMP_FILE = '/tmp/gazeru_tmp'
 
     def extract(self, video):
@@ -21,7 +21,7 @@ class SoundExtractor:
         raise NotImplementedError()
 
 
-class Mp3ExtractorFromFlv(SoundExtractor):
+class Mp3ExtractorFromFlv(Mp3Extractor):
 
     def _extract(self):
         SOUND_FILE = '{0}.mp3'.format(self.TMP_FILE)
@@ -38,7 +38,7 @@ class Mp3ExtractorFromFlv(SoundExtractor):
         return 'mp3'
 
 
-class Mp3ExtractorFromSwf(SoundExtractor):
+class Mp3ExtractorFromSwf(Mp3Extractor):
 
     def _extract(self):
         SOUND_FILE = '{0}.mp3'.format(self.TMP_FILE)
@@ -55,11 +55,11 @@ class Mp3ExtractorFromSwf(SoundExtractor):
         return 'mp3'
 
 
-class M4aExtractorFromMp4(SoundExtractor):
+class Mp3ExtractorFromMp4(Mp3Extractor):
 
     def _extract(self):
-        SOUND_FILE = '{0}.mp4'.format(self.TMP_FILE)
-        subprocess.call('ffmpeg -i {0} -vn -acodec copy {1} > /dev/null 2>&1'
+        SOUND_FILE = '{0}.mp3'.format(self.TMP_FILE)
+        subprocess.call('ffmpeg -i {0} -ab 320 {1} > /dev/null 2>&1'
                         .format(self.TMP_FILE, SOUND_FILE), shell=True)
         file_handler = open(SOUND_FILE, 'rb')
         sound = file_handler.read()
@@ -69,15 +69,15 @@ class M4aExtractorFromMp4(SoundExtractor):
         return sound
 
     def _get_sound_type(self):
-        return 'm4a'
+        return 'mp3'
 
 
-class SoundExtractorFactory:
+class Mp3ExtractorFactory:
 
     def build(self, video, video_type):
         if (video_type == 'flv'):
             return Mp3ExtractorFromFlv()
         elif (video_type == 'mp4'):
-            return M4aExtractorFromMp4()
+            return Mp3ExtractorFromMp4()
         elif (video_type == 'swf'):
             return Mp3ExtractorFromSwf()

@@ -5,7 +5,7 @@ import re
 from logging import FileHandler, Formatter
 import nicopy
 from .config import Config
-from .sound_extractor import SoundExtractorFactory
+from .mp3extractor import Mp3ExtractorFactory
 from .exception import *
 
 
@@ -13,7 +13,7 @@ class Gazeru:
 
     def __init__(self):
         self.config = Config()
-        self.sound_extractor_factory = SoundExtractorFactory()
+        self.sound_extractor_factory = Mp3ExtractorFactory()
         self.dot_gazeru = '{0}/.gazeru'.format(self.config.get_directory())
         self.GAZEL_HOME = '{0}/.gazeru'.format(os.environ['HOME'])
         self.setup_logger()
