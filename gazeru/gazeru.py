@@ -146,11 +146,12 @@ class Gazeru:
                     self.edit_id3(sound_file_path,
                                   mylist_title,
                                   video_info_detail['user_nickname'],
-                                  video_info_detail['title'])
+                                  video_info_detail['title'],
+                                  video_info['position'])
                     print('done!')
         return downloading
 
-    def edit_id3(self, sound_file_path, album, artist, title):
+    def edit_id3(self, sound_file_path, album, artist, title, tracknumber):
         mp3 = mutagen.mp3.MP3(sound_file_path)
         try:
             mp3.add_tags(ID3=mutagen.id3.ID3)
@@ -162,6 +163,8 @@ class Gazeru:
                                        text=artist)
         mp3['TIT2'] = mutagen.id3.TIT2(encoding=3,
                                        text=title)
+        mp3['TRCK'] = mutagen.id3.TRCK(encoding=3,
+                                       text=[str(tracknumber)])
         mp3.save()
 
     def escape(self, string):
