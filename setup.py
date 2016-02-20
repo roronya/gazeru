@@ -10,7 +10,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='gazeru',
-    version='3.0.0',
+    version='3.0.1',
     description='A crawler for niconico',
     long_description=long_description,
     url='http://github.com/roronya/gazeru',
@@ -26,6 +26,6 @@ setup(
     ],
     keywords='niconico crawler',
     packages=find_packages(exclude=['tests*']),
-    install_requires=['requests', 'pyquery', 'nicopy'],
+    install_requires=['requests', 'beautifulsoup4', 'nicopy', 'mutagen'],
     scripts=['bin/gazeru']
 )
