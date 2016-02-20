@@ -150,7 +150,6 @@ class Gazeru:
                                   video_info_detail['title'],
                                   video_info['position'],
                                   requests.get(video_info_detail['thumbnail_url']).content)
-                    print('done!')
         return downloading
 
     def edit_id3(self, sound_file_path, album, artist, title, tracknumber, thumbnail):
