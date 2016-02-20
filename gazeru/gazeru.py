@@ -3,6 +3,7 @@ import json
 import logging
 import re
 from logging import FileHandler, Formatter
+import requests
 import mutagen.mp3
 import mutagen.id3
 import nicopy
@@ -147,11 +148,12 @@ class Gazeru:
                                   mylist_title,
                                   video_info_detail['user_nickname'],
                                   video_info_detail['title'],
-                                  video_info['position'])
+                                  video_info['position'],
+                                  requests.get(video_info_detail['thumbnail_url']).content)
                     print('done!')
         return downloading
 
-    def edit_id3(self, sound_file_path, album, artist, title, tracknumber):
+    def edit_id3(self, sound_file_path, album, artist, title, tracknumber, thumbnail):
         mp3 = mutagen.mp3.MP3(sound_file_path)
         try:
             mp3.add_tags(ID3=mutagen.id3.ID3)
@@ -165,6 +167,15 @@ class Gazeru:
                                        text=title)
         mp3['TRCK'] = mutagen.id3.TRCK(encoding=3,
                                        text=[str(tracknumber)])
+        mp3.tags.add(
+            mutagen.id3.APIC(
+                encoding=3,
+                mime='image/jpeg',
+                type=3,
+                desc='Cover',
+                data=thumbnail
+            )
+        )
         mp3.save()
 
     def escape(self, string):
