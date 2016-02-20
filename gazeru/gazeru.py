@@ -3,6 +3,8 @@ import json
 import logging
 import re
 from logging import FileHandler, Formatter
+import mutagen.mp3
+import mutagen.id3
 import nicopy
 from .config import Config
 from .mp3extractor import Mp3ExtractorFactory
@@ -139,8 +141,28 @@ class Gazeru:
                         sound_file_directory, self.escape(video_info['title']), sound_type)
                     with open(sound_file_path, 'wb') as file:
                         file.write(sound)
+
+                    video_info_detail = nicopy.get_video_info(video_info['id'])
+                    self.edit_id3(sound_file_path,
+                                  mylist_title,
+                                  video_info_detail['user_nickname'],
+                                  video_info_detail['title'])
                     print('done!')
         return downloading
+
+    def edit_id3(self, sound_file_path, album, artist, title):
+        mp3 = mutagen.mp3.MP3(sound_file_path)
+        try:
+            mp3.add_tags(ID3=mutagen.id3.ID3)
+        except mutagen.id3.error:
+            pass
+        mp3['TALB'] = mutagen.id3.TALB(encoding=3,
+                                       text=album)
+        mp3['TPE1'] = mutagen.id3.TPE1(encoding=3,
+                                       text=artist)
+        mp3['TIT2'] = mutagen.id3.TIT2(encoding=3,
+                                       text=title)
+        mp3.save()
 
     def escape(self, string):
         string = string.replace("/", "＼")
