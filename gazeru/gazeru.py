@@ -195,9 +195,9 @@ class Gazeru:
         self.logger.info('start downloading {0}'.format(video_id))
         cookie = nicopy.login(self.config.get_user(),
                               self.config.get_password())
-        flv = nicopy.get_flv(video_id, cookie)
         video_info = nicopy.get_video_info(video_id)
         video_type = video_info['movie_type']
+        flv = nicopy.get_flv(video_id, cookie)
         result = (flv, video_info)
         self.logger.info('finished downloading {0}'.format(video_id))
         return result
