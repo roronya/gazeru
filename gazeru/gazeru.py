@@ -133,23 +133,29 @@ class Gazeru:
             for mylist_title, video_infos in mylists.items():
                 for video_info in video_infos:
                     print('downloading {0}'.format(video_info['title']))
-                    video, video_type = self.download_video(video_info['id'])
-                    sound, sound_type = self.extract_sound(video, video_type)
-                    sound_file_directory = '{0}/{1}/{2}'.format(
-                        download_directory, self.escape(creator), self.escape(mylist_title))
-                    os.makedirs(sound_file_directory, exist_ok=True)
-                    sound_file_path = '{0}/{1}.{2}'.format(
-                        sound_file_directory, self.escape(video_info['title']), sound_type)
-                    with open(sound_file_path, 'wb') as file:
-                        file.write(sound)
+                    try:
+                        video, video_type = self.download_video(
+                            video_info['id'])
+                        sound, sound_type = self.extract_sound(
+                            video, video_type)
+                        sound_file_directory = '{0}/{1}/{2}'.format(
+                            download_directory, self.escape(creator), self.escape(mylist_title))
+                        os.makedirs(sound_file_directory, exist_ok=True)
+                        sound_file_path = '{0}/{1}.{2}'.format(
+                            sound_file_directory, self.escape(video_info['title']), sound_type)
+                        with open(sound_file_path, 'wb') as file:
+                            file.write(sound)
 
-                    video_info_detail = nicopy.get_video_info(video_info['id'])
-                    self.edit_id3(sound_file_path,
-                                  mylist_title,
-                                  video_info_detail['user_nickname'],
-                                  video_info_detail['title'],
-                                  video_info['position'],
-                                  requests.get(video_info_detail['thumbnail_url']).content)
+                        video_info_detail = nicopy.get_video_info(
+                            video_info['id'])
+                        self.edit_id3(sound_file_path,
+                                      mylist_title,
+                                      video_info_detail['user_nickname'],
+                                      video_info_detail['title'],
+                                      video_info['position'],
+                                      requests.get(video_info_detail['thumbnail_url']).content)
+                    except nicopy.ResponseFailError:
+                        print('{0} is skipped'.format(video_info['title']))
         return downloading
 
     def edit_id3(self, sound_file_path, album, artist, title, tracknumber, thumbnail):
